@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Screen</title>
+</head>
+<body>
+<h1>Hallo du schnecke :P</h1>
+<img id="ItemPreview" src="" style="width: 500px; height: 500px"/>
+</body>
+<footer>
+    <script>
+        const {ipcRenderer} = require('electron')
+        console.log(ipcRenderer.sendSync('synchronous-message', 'ping')) // prints "pong"
+        ipcRenderer.on('image-update', (event, arg) => {
+            // document.getElementById("ItemPreview").src = "data:image/png;base64," + arg;
+        })
+        ipcRenderer.send('asynchronous-message', 'ping')
+
+
+        const {desktopCapturer} = require('electron')
+
+        desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {
+            if (error) throw error
+
+            function handleStream(stream) {
+                document.getElementById("ItemPreview").src = "data:image/png;base64," + new Buffer(stream, 'binary').toString('base64');
+                console.log("rene");
+            }
+
+            for (let i = 0; i < sources.length; ++i) {
+                if (sources[i].name === 'Electron') {
+                    navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: {
+                            mandatory: {
+                                chromeMediaSource: 'desktop',
+                                chromeMediaSourceId: sources[i].id,
+                                minWidth: 1280,
+                                maxWidth: 1280,
+                                minHeight: 720,
+                                maxHeight: 720
+                            }
+                        }
+                    }).then((stream) => handleStream(stream))
+                        .catch((e) => handleError(e))
+                    return
+                }
+            }
+        })
+
+    </script>
+</footer>
+</html>
